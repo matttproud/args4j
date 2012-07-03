@@ -90,7 +90,7 @@ public class CmdLineParser {
         if (bean==null) return;
 
         // Parse the metadata and create the setters
-        new ClassParser().parse(bean,this);
+        new ClassParser().parse(new Object[]{bean},this);
 
         // for display purposes, we like the arguments in argument order, but the options in alphabetical order
         Collections.sort(options, new Comparator<OptionHandler>() {
