@@ -1,7 +1,8 @@
 package org.kohsuke.args4j.spi;
 
-import org.kohsuke.args4j.spi.Setter;
-import org.kohsuke.args4j.*;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.IllegalAnnotationError;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -12,53 +13,51 @@ import java.lang.reflect.Method;
  * @author Kohsuke Kawaguchi
  */
 public final class MethodSetter implements Setter {
-    private final CmdLineParser parser;
-    private final Object bean;
-    private final Method m;
+  private final CmdLineParser parser;
+  private final Object bean;
+  private final Method m;
 
-    public MethodSetter(CmdLineParser parser, Object bean, Method m) {
-        this.parser = parser;
-        this.bean = bean;
-        this.m = m;
-        if(m.getParameterTypes().length!=1)
-            throw new IllegalAnnotationError(Messages.ILLEGAL_METHOD_SIGNATURE.format(m));
-    }
+  public MethodSetter(CmdLineParser parser, Object bean, Method m) {
+    this.parser = parser;
+    this.bean = bean;
+    this.m = m;
+    if (m.getParameterTypes().length != 1)
+      throw new IllegalAnnotationError(Messages.ILLEGAL_METHOD_SIGNATURE.format(m));
+  }
 
-    public Class getType() {
-        return m.getParameterTypes()[0];
-    }
+  public Class getType() {
+    return m.getParameterTypes()[0];
+  }
 
-    public boolean isMultiValued() {
-    	return false;
-    }
+  public boolean isMultiValued() {
+    return false;
+  }
 
-    public void addValue(Object value) throws CmdLineException {
+  public void addValue(Object value) throws CmdLineException {
+    try {
+      try {
+        m.invoke(bean, value);
+      } catch (IllegalAccessException _) {
+        // try again
+        m.setAccessible(true);
         try {
-            try {
-                m.invoke(bean,value);
-            } catch (IllegalAccessException _) {
-                // try again
-                m.setAccessible(true);
-                try {
-                    m.invoke(bean,value);
-                } catch (IllegalAccessException e) {
-                    throw new IllegalAccessError(e.getMessage());
-                }
-            }
-        } catch (InvocationTargetException e) {
-            Throwable t = e.getTargetException();
-            if(t instanceof RuntimeException)
-                throw (RuntimeException)t;
-            if(t instanceof Error)
-                throw (Error)t;
-            if(t instanceof CmdLineException)
-                throw (CmdLineException)t;
-
-            // otherwise wrap
-            if(t!=null)
-                throw new CmdLineException(parser, t);
-            else
-                throw new CmdLineException(parser, e);
+          m.invoke(bean, value);
+        } catch (IllegalAccessException e) {
+          throw new IllegalAccessError(e.getMessage());
         }
+      }
+    } catch (InvocationTargetException e) {
+      Throwable t = e.getTargetException();
+      if (t instanceof RuntimeException) throw (RuntimeException) t;
+      if (t instanceof Error) throw (Error) t;
+      if (t instanceof CmdLineException) throw (CmdLineException) t;
+
+      // otherwise wrap
+      if (t != null) {
+        throw new CmdLineException(parser, t);
+      } else {
+        throw new CmdLineException(parser, e);
+      }
     }
+  }
 }

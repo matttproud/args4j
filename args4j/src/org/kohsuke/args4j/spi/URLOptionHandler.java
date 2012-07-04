@@ -13,24 +13,24 @@ import java.net.URL;
  * @author Kohsuke Kawaguchi
  */
 public class URLOptionHandler extends OptionHandler<URL> {
-    public URLOptionHandler(CmdLineParser parser, OptionDef option, Setter<? super URL> setter) {
-        super(parser, option, setter);
-    }
+  public URLOptionHandler(CmdLineParser parser, OptionDef option, Setter<? super URL> setter) {
+    super(parser, option, setter);
+  }
 
-    @Override
-    public int parseArguments(Parameters params) throws CmdLineException {
-        String param = params.getParameter(0);
-        try {
-            setter.addValue(new URL(param));
-            return 1;
-        } catch (MalformedURLException e) {
-            throw new CmdLineException(owner, Messages.ILLEGAL_OPERAND.format(
-                    params.getParameter(-1),param));
-        }
+  @Override
+  public int parseArguments(Parameters params) throws CmdLineException {
+    String param = params.getParameter(0);
+    try {
+      setter.addValue(new URL(param));
+      return 1;
+    } catch (MalformedURLException e) {
+      throw new CmdLineException(owner, Messages.ILLEGAL_OPERAND.format(
+          params.getParameter(-1), param));
     }
+  }
 
-    @Override
-    public String getDefaultMetaVariable() {
-        return "URL";
-    }
+  @Override
+  public String getDefaultMetaVariable() {
+    return "URL";
+  }
 }
